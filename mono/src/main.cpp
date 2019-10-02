@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
     Mat image_zed_depth(image_size, MAT_TYPE_8U_C4);
 
     cv::Mat image_ocv = cv::Mat(image_zed.getHeight(), image_zed.getWidth(), CV_8UC4, image_zed.getPtr<sl::uchar1>(MEM_CPU));
-    cv::Mat image_depth = cv::Mat(image_zed.getHeight(), image_zed.getWidth(), CV_8UC4, image_zed.getPtr<sl::uchar1>(MEM_CPU));
+    cv::Mat image_depth = cv::Mat(image_zed_depth.getHeight(), image_zed_depth.getWidth(), CV_8UC4, image_zed_depth.getPtr<sl::uchar1>(MEM_CPU));
 
     cv::Mat image_ocv_rgb;
 
@@ -132,7 +132,7 @@ int main(int argc, char **argv) {
 
             // Display image
             cv::imshow("Image", image_ocv_rgb);
-            cv::imshow("Depth", image_zed_depth);
+            cv::imshow("Depth", image_depth);
 
             // Handle key event
             key = cv::waitKey(10);
