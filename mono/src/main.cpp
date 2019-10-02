@@ -57,7 +57,11 @@ int main(int argc, char **argv) {
 
     Resolution image_size = zed.getResolution();
     Mat image_zed(image_size, MAT_TYPE_8U_C4);
+    Mat image_zed_depth(image_size, MAT_TYPE_8U_C4);
+
     cv::Mat image_ocv = cv::Mat(image_zed.getHeight(), image_zed.getWidth(), CV_8UC4, image_zed.getPtr<sl::uchar1>(MEM_CPU));
+    cv::Mat image_depth = cv::Mat(image_zed.getHeight(), image_zed.getWidth(), CV_8UC4, image_zed.getPtr<sl::uchar1>(MEM_CPU));
+
     cv::Mat image_ocv_rgb;
 
     auto calibInfo = zed.getCameraInformation().calibration_parameters.left_cam;
@@ -91,6 +95,7 @@ int main(int argc, char **argv) {
         if (zed.grab() == SUCCESS) {
             // Retrieve the left image
             zed.retrieveImage(image_zed, VIEW_LEFT, MEM_CPU, image_size.width, image_size.height);
+            zed.retrieveImage(image_zed_depth, VIEW_DEPTH, MEM_CPU, image_size.width, image_size.height);
 
             // convert to RGB
             cv::cvtColor(image_ocv, image_ocv_rgb, cv::COLOR_RGBA2RGB);
@@ -115,15 +120,19 @@ int main(int argc, char **argv) {
                 can_reset = true;
 
                 cv::aruco::drawDetectedMarkers(image_ocv_rgb, corners, ids);
-                cv::aruco::drawAxis(image_ocv_rgb, camera_matrix, dist_coeffs, rvecs[0], tvecs[0], actual_marker_size_meters * 0.5f);
-                position_txt = "Aruco x: " + to_string(pose.tx) + "; y: " + to_string(pose.ty) + "; z: " + to_string(pose.tz);
-                cv::putText(image_ocv_rgb, position_txt, cv::Point(10, 60), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(124, 252, 124));
+
+                for(int i = 0;i<ids.size();i++){
+                    cv::aruco::drawAxis(image_ocv_rgb, camera_matrix, dist_coeffs, rvecs[i], tvecs[i], actual_marker_size_meters * 0.5f);
+                }
+                // position_txt = "Aruco x: " + to_string(pose.tx) + "; y: " + to_string(pose.ty) + "; z: " + to_string(pose.tz);
+                // cv::putText(image_ocv_rgb, position_txt, cv::Point(10, 60), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(124, 252, 124));
 
             } else
                 can_reset = false;
 
             // Display image
             cv::imshow("Image", image_ocv_rgb);
+            cv::imshow("Depth", image_zed_depth);
 
             // Handle key event
             key = cv::waitKey(10);
